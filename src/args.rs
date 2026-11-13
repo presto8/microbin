@@ -116,6 +116,14 @@ pub struct Args {
     #[clap(short, long, env = "MICROBIN_NO_FILE_UPLOAD")]
     pub no_file_upload: bool,
 
+    // SECURITY: off by default. Serving an uploaded HTML file inline
+    // (vs. forcing a download) executes any script it contains in this
+    // origin - a same-origin stored XSS if any untrusted party can
+    // upload files. Only enable this if every uploader is fully trusted
+    // (e.g. a single-user instance).
+    #[clap(long, env = "MICROBIN_HTML_PREVIEW")]
+    pub html_preview: bool,
+
     #[clap(long, env = "MICROBIN_CUSTOM_CSS")]
     pub custom_css: Option<String>,
 
@@ -236,6 +244,7 @@ impl Args {
             max_expiry: self.max_expiry,
             data_dir: String::from(""),
             no_file_upload: self.no_file_upload,
+            html_preview: self.html_preview,
             custom_css: self.custom_css,
             hash_ids: self.hash_ids,
             disable_telemetry: self.disable_telemetry,
