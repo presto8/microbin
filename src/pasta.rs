@@ -71,6 +71,16 @@ impl PastaFile {
         extensions.iter().any(|&ext| lowercase_name.ends_with(ext))
     }
 
+    /// Only used to gate the opt-in `MICROBIN_HTML_PREVIEW` behavior (see
+    /// args.rs). Serving an HTML file inline executes any script it
+    /// contains in this origin - this must stay off by default and only
+    /// ever be enabled by an operator who trusts every uploader.
+    pub fn is_html(&self) -> bool {
+        let lowercase_name = self.name.to_lowercase();
+        let extensions = [".html", ".htm"];
+        extensions.iter().any(|&ext| lowercase_name.ends_with(ext))
+    }
+
     pub fn embeddable(&self) -> bool {
         self.is_image() || self.is_video()
     }
