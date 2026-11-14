@@ -162,6 +162,16 @@ impl Pasta {
             && !(self.encrypt_server || self.encrypt_client);
     }
 
+    /// Renders an HTML file inside a sandboxed iframe on the paste page.
+    /// Gated by `MICROBIN_HTML_PREVIEW` for the same reason as the
+    /// `/file/` inline behavior: the content runs with scripts enabled.
+    pub fn html_embeddable(&self) -> bool {
+        return ARGS.html_preview
+            && self.has_file()
+            && self.file.as_ref().unwrap().is_html()
+            && !(self.encrypt_server || self.encrypt_client);
+    }
+
     pub fn created_as_string(&self) -> String {
         Local.timestamp_opt(self.created, 0).map(|date| {
             format!(
