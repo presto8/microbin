@@ -126,28 +126,28 @@ fn is_cli_user_agent(req: &HttpRequest) -> bool {
         .unwrap_or(false)
 }
 
-/// Builds the absolute, user-facing URL for an upload, following the same
-/// short_path / public_path rules as the "Copy URL" button in the UI. If
-/// neither is configured, falls back to the scheme/host of the incoming
-/// request so that the URL is always usable outside of a browser (e.g. curl).
-fn upload_url(req: &HttpRequest, slug: &str) -> String {
+fn upload_path(slug: &str, is_html_file: bool) -> String {
+    let route = if is_html_file { "file" } else { "p" };
+    format!("/{route}/{slug}")
+}
+
+/// Builds the absolute URL returned to a client after upload. If neither
+/// short_path nor public_path is configured, use the incoming request's
+/// scheme/host so the URL is usable outside a browser (e.g. curl).
+fn upload_url(req: &HttpRequest, slug: &str, is_html_file: bool) -> String {
     let short_path = ARGS.short_path_as_str();
-    if !short_path.is_empty() {
-        format!("{}/p/{}", short_path, slug)
+    let base = if !short_path.is_empty() {
+        short_path
     } else {
         let public_path = ARGS.public_path_as_str();
         if !public_path.is_empty() {
-            format!("{}/upload/{}", public_path, slug)
+            public_path
         } else {
             let connection_info = req.connection_info();
-            format!(
-                "{}://{}/upload/{}",
-                connection_info.scheme(),
-                connection_info.host(),
-                slug
-            )
+            format!("{}://{}", connection_info.scheme(), connection_info.host())
         }
-    }
+    };
+    format!("{base}{}", upload_path(slug, is_html_file))
 }
 
 pub async fn create(
@@ -405,6 +405,11 @@ pub async fn create(
     }
 
     let id = new_pasta.id;
+    let is_html_file = new_pasta
+        .file
+        .as_ref()
+        .map(PastaFile::is_html)
+        .unwrap_or(false);
 
     if plain_key != *"" && new_pasta.readonly {
         new_pasta.encrypted_key = Some(encrypt(id.to_string().as_str(), &plain_key));
@@ -462,7 +467,6 @@ pub async fn create(
     } else {
         to_animal_names(id)
     };
-
     // Scripting-friendly response: skip the browser redirect dance entirely
     // and just hand back the plain-text URL of the upload. This makes it
     // trivial to use MicroBin from curl, e.g.:
@@ -476,7 +480,7 @@ pub async fn create(
     if url_only_after_upload.unwrap_or_else(|| is_cli_user_agent(&req)) {
         return Ok(HttpResponse::Ok()
             .content_type("text/plain; charset=utf-8")
-            .body(upload_url(&req, &slug)));
+            .body(upload_url(&req, &slug, is_html_file)));
     }
 
     if encrypt_server {
@@ -506,5 +510,20 @@ pub async fn create(
                     .finish(),
             )
             .finish())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::upload_path;
+
+    #[test]
+    fn plain_text_and_non_html_uploads_return_paste_path() {
+        assert_eq!(upload_path("some-id", false), "/p/some-id");
+    }
+
+    #[test]
+    fn html_uploads_return_direct_file_path() {
+        assert_eq!(upload_path("some-id", true), "/file/some-id");
     }
 }

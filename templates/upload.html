@@ -29,6 +29,9 @@
   {% if args.public_path_as_str() != "" %}
   <button id="copy-url-button" class="small-button">Copy URL</button>
   {%- endif %}
+  {% if pasta.html_embeddable() %}
+  <a class="small-button" style="text-decoration: none" href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}">View as HTML</a>
+  {%- endif %}
   {% if pasta.encrypt_client && pasta.attachments.is_some() %}
   <button id="download-all-encrypted-button" class="small-button">Download all (Decrypted Zip)</button>
   {%- endif %}
