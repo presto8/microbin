@@ -66,7 +66,7 @@ justify-content: center; align-items: center;">
     </button>
     {%- endif %}
     {%- endif %}
-    {% if pasta.file.is_some() && !pasta.file_embeddable() %}
+    {% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.html_embeddable() %}
     <button class="small-button" id="download-button" style="margin-right:
   0.5rem">
       <b>
@@ -95,7 +95,7 @@ justify-content: center; align-items: center;">
 </div>
 {%- endif %}
 
-{% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
+{% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.html_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
 <span style="margin-left: auto; margin-right: auto; display: flex;
     justify-content: center; align-items: center;">
   <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
@@ -128,6 +128,20 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
 {% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_video() &&
 pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
 <video id="embed" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" height="300"></video>
+<span style="margin-left: auto; margin-right: auto; display: flex;
+  justify-content: center; align-items: center;">
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
+    [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" download id="download-link">
+    <button class="download-button">
+      Download
+    </button>
+  </a>
+</span>
+{%- endif %}
+
+{% if pasta.file.is_some() && pasta.html_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
+<iframe id="embed" sandbox="allow-scripts allow-popups" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" style="width: 100%; height: 70vh; border: 1px solid #888; background: #fff;"></iframe>
 <span style="margin-left: auto; margin-right: auto; display: flex;
   justify-content: center; align-items: center;">
   <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
