@@ -29,9 +29,6 @@
   {% if args.public_path_as_str() != "" %}
   <button id="copy-url-button" class="small-button">Copy URL</button>
   {%- endif %}
-  {% if pasta.html_embeddable() %}
-  <a class="small-button" style="text-decoration: none" href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}">View as HTML</a>
-  {%- endif %}
   {% if pasta.encrypt_client && pasta.attachments.is_some() %}
   <button id="download-all-encrypted-button" class="small-button">Download all (Decrypted Zip)</button>
   {%- endif %}
@@ -144,11 +141,13 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
 {%- endif %}
 
 {% if pasta.file.is_some() && pasta.html_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
-<iframe id="embed" sandbox="allow-scripts allow-popups" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" style="width: 100%; height: 70vh; border: 1px solid #888; background: #fff;"></iframe>
 <span style="margin-left: auto; margin-right: auto; display: flex;
-  justify-content: center; align-items: center;">
+  justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
   <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
     [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}">
+    <button class="download-button">View as HTML</button>
+  </a>
   <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" download id="download-link">
     <button class="download-button">
       Download
